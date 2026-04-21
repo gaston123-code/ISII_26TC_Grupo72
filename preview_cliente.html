@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AutoRent - Panel Cliente (Autos Disponibles)</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #0f766e; --primary-hover: #115e59; --secondary-color: #1e3a8a;
+            --bg-color: #f3f4f6; --text-color: #1f2937; --text-light: #6b7280;
+            --border-color: #e5e7eb; --white: #ffffff; --danger: #ef4444;
+            --success: #10b981; --warning: #f59e0b; --sidebar-width: 250px; --transition: 0.3s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.5; }
+        
+        .w-full { width: 100%; text-align: center; display: inline-block;}
+        
+        /* Sidebar y Layout */
+        .dashboard-layout { display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background-color: var(--secondary-color); color: var(--white); flex-shrink: 0; display: flex; flex-direction: column; transition: var(--transition); }
+        .sidebar-brand { padding: 1.5rem; font-size: 1.25rem; font-weight: 700; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-nav { flex: 1; padding: 1rem 0; }
+        .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem; color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: var(--transition); }
+        .nav-item:hover, .nav-item.active { background-color: rgba(255, 255, 255, 0.1); color: var(--white); }
+        
+        /* Contenido Principal */
+        .main-content { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .top-header { background-color: var(--white); height: 4rem; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+        .mobile-toggle { display: none; background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-color); }
+        .user-menu { display: flex; align-items: center; gap: 1rem; }
+        .avatar { width: 2.2rem; height: 2.2rem; border-radius: 50%; background-color: var(--primary-color); color: var(--white); display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .btn-link { background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Área Dinámica */
+        .content-area { padding: 2rem; flex: 1; overflow-y: auto; }
+        .page-title { margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--text-color); }
+        .btn { padding: 0.75rem 1.5rem; font-weight: 500; border: none; border-radius: 0.375rem; cursor: pointer; text-decoration: none; transition: var(--transition); }
+        .btn-primary { background-color: var(--primary-color); color: var(--white); }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        /* Cars Grid (Extraido de app.css) */
+        .cars-grid { display: grid; gap: 1.5rem; margin-bottom: 2rem; }
+        .car-card { background-color: var(--white); border-radius: 0.5rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color); transition: transform 0.2s ease, box-shadow 0.2s ease; display: flex; flex-direction: column; }
+        .car-card:hover { transform: translateY(-4px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .car-img-wrapper { width: 100%; height: 200px; background-color: var(--bg-color); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .car-img { width: 100%; height: 100%; object-fit: cover; }
+        .car-info { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .car-title { font-size: 1.25rem; font-weight: 600; color: var(--text-color); margin-bottom: 0.5rem; }
+        .car-details { color: var(--text-light); font-size: 0.875rem; margin-bottom: 1rem; flex: 1; }
+        .car-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; margin-bottom: 1rem; align-self: flex-start; }
+        .status-disponible { background-color: #d1fae5; color: #065f46; }
+        .status-nodisponible { background-color: #fee2e2; color: #991b1b; }
+        .car-actions { margin-top: auto; }
+
+        /* Responsive */
+        @media (min-width: 1200px) { .cars-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 992px) and (max-width: 1199px) { .cars-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 991px) { .sidebar { position: fixed; left: -250px; height: 100vh; z-index: 1000; } .sidebar.open { left: 0; } .main-content { margin-left: 0; } .mobile-toggle { display: block; } .cars-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 767px) { .dashboard-layout { flex-direction: column; } .top-header { padding: 0 1rem; } .user-name { display: none; } .content-area { padding: 1rem; } }
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 999; }
+        .sidebar-overlay.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Overlay Mobile -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand"><i class="fa-solid fa-car"></i> <span class="brand-text">AutoRent</span></div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active"><i class="fa-solid fa-magnifying-glass"></i> <span>Buscar Autos</span></a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-calendar-check"></i> <span>Mis Reservas</span></a>
+                <a href="#" class="nav-item"><i class="fa-regular fa-id-badge"></i> <span>Mi Perfil</span></a>
+                <a href="#" class="nav-item"><i class="fa-solid fa-envelope"></i> <span>Soporte</span></a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <button class="mobile-toggle" id="mobile-toggle-btn"><i class="fa-solid fa-bars"></i></button>
+                <div class="header-right"></div>
+                <div class="user-menu">
+                    <span class="user-name">Cliente Frecuente</span>
+                    <div class="avatar" style="background-color: var(--secondary-color);">C</div>
+                    <button class="btn-link"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+                </div>
+            </header>
+
+            <!-- Dashboard Content (Vista de Autos) -->
+            <div class="content-area">
+                <h1 class="page-title">Autos Disponibles para Renta</h1>
+
+                <div class="cars-grid">
+                    <!-- Auto 1 -->
+                    <div class="car-card">
+                        <div class="car-img-wrapper">
+                            <!-- Imagen por ej de unsplash libre -->
+                            <img src="https://images.unsplash.com/photo-1590362891991-f766e5898af4?auto=format&fit=crop&w=400&q=80" alt="Toyota Corolla" class="car-img">
+                        </div>
+                        <div class="car-info">
+                            <h3 class="car-title">Toyota Corolla - 2022</h3>
+                            <div class="car-details">
+                                <p><i class="fa-solid fa-hashtag" style="margin-right:0.5rem;"></i>Matrícula: <span style="font-family: monospace;">ABC-1234</span></p>
+                                <p style="margin-top:0.5rem;"><i class="fa-solid fa-gas-pump" style="margin-right:0.5rem;"></i>Híbrido - Automático</p>
+                            </div>
+                            <span class="car-status status-disponible">Disponible hoy</span>
+                            <div class="car-actions">
+                                <!-- Enlace que en Laravel llevaría a route('reservar') -->
+                                <a href="#" class="btn btn-primary w-full" onclick="alert('Irías al formulario de renta de este auto')">Reservar ahora</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto 2 -->
+                    <div class="car-card">
+                        <div class="car-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=400&q=80" alt="Ford Explorer" class="car-img">
+                        </div>
+                        <div class="car-info">
+                            <h3 class="car-title">Ford Explorer - 2023</h3>
+                            <div class="car-details">
+                                <p><i class="fa-solid fa-hashtag" style="margin-right:0.5rem;"></i>Matrícula: <span style="font-family: monospace;">DEF-5678</span></p>
+                                <p style="margin-top:0.5rem;"><i class="fa-solid fa-gas-pump" style="margin-right:0.5rem;"></i>Gasolina - Automático</p>
+                            </div>
+                            <span class="car-status status-nodisponible">No disponible</span>
+                            <div class="car-actions">
+                                <button class="btn btn-primary w-full" disabled style="opacity: 0.5; cursor: not-allowed;">Sin stock</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto 3 -->
+                    <div class="car-card">
+                        <div class="car-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=400&q=80" alt="Jeep Wrangler" class="car-img">
+                        </div>
+                        <div class="car-info">
+                            <h3 class="car-title">Jeep Wrangler Rubicon</h3>
+                            <div class="car-details">
+                                <p><i class="fa-solid fa-hashtag" style="margin-right:0.5rem;"></i>Matrícula: <span style="font-family: monospace;">GHI-9012</span></p>
+                                <p style="margin-top:0.5rem;"><i class="fa-solid fa-gas-pump" style="margin-right:0.5rem;"></i>Diésel - Manual</p>
+                            </div>
+                            <span class="car-status status-disponible">Disponible mañana</span>
+                            <div class="car-actions">
+                                <a href="#" class="btn btn-primary w-full" onclick="alert('Irías al formulario de renta de este auto')">Reservar ahora</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Script Menu Mobile -->
+    <script>
+        document.getElementById('mobile-toggle-btn').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        });
+        document.getElementById('sidebar-overlay').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.remove('open');
+            this.classList.remove('active');
+        });
+    </script>
+</body>
+</html>
