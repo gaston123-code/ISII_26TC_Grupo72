@@ -18,7 +18,7 @@ Universidad Nacional del Nordeste
 ### Requisitos
 - PHP >= 8.2
 - Composer
-- Cuenta en [Supabase](https://supabase.com) (gratuita)
+- [XAMPP](https://www.apachefriends.org/es/index.html) (Apache + MySQL)
 
 ### Pasos
 
@@ -27,41 +27,39 @@ Universidad Nacional del Nordeste
 git clone https://github.com/gaston123-code/ISII_26TC_Grupo72.git
 cd ISII_26TC_Grupo72
 
-# 2. Cambiar a la rama de backend
-git checkout feature/backend-auth
-
-# 3. Instalar dependencias PHP
+# 2. Instalar dependencias PHP
 composer install
 
-# 4. Configurar el entorno
+# 3. Configurar el entorno
 cp .env.example .env
 php artisan key:generate
 ```
 
-### Configurar Supabase en `.env`
-Abrí tu proyecto en [Supabase Dashboard](https://supabase.com/dashboard) →
-**Settings → Database → Connection string** y completá:
+### Configurar Base de Datos en `.env` (XAMPP)
+1. Abre el **XAMPP Control Panel** e inicia Apache y MySQL.
+2. Entra a [phpMyAdmin](http://localhost/phpmyadmin/) y crea una base de datos llamada `autorent`.
+3. Edita tu archivo `.env`:
 
 ```env
-DB_CONNECTION=pgsql
-DB_HOST=db.XXXXXXXXXX.supabase.co   # Tu project ref
-DB_PORT=5432
-DB_DATABASE=postgres
-DB_USERNAME=postgres
-DB_PASSWORD=tu_password_de_supabase
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=autorent
+DB_USERNAME=root
+DB_PASSWORD=
 ```
 
 ```bash
-# 5. Ejecutar migraciones (crea todas las tablas en Supabase)
+# 4. Ejecutar migraciones (crea todas las tablas localmente)
 php artisan migrate
 
-# 6. Cargar datos iniciales (marcas, modelos, estados, admin por defecto)
+# 5. Cargar datos iniciales (marcas, modelos, estados, admin por defecto)
 php artisan db:seed
 
-# 7. Publicar storage (para imágenes de autos)
+# 6. Publicar storage (para imágenes de autos)
 php artisan storage:link
 
-# 8. Levantar el servidor local
+# 7. Levantar el servidor local
 php artisan serve
 ```
 
