@@ -21,9 +21,11 @@ use Illuminate\Support\Facades\Route;
 // ═══════════════════════════════════════════════════════════
 
 Route::get('/', function () {
-    $autos = \App\Models\Auto::all();
+    $autos = \App\Models\Auto::with(['modelo.marca', 'estadoAuto'])->get();
     return view('autos', compact('autos'));
 })->name('catalogo');
+
+Route::match(['get', 'post'], '/consultar-disponibilidad', [\App\Http\Controllers\AlquilerController::class, 'consultarDisponibilidad'])->name('consultar.disponibilidad');
 
 // ═══════════════════════════════════════════════════════════
 //  AUTENTICACIÓN — CLIENTE

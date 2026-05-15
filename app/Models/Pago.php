@@ -22,4 +22,22 @@ class Pago extends Model
     {
         return $this->belongsTo(Alquiler::class, 'id_reserva', 'id_reserva');
     }
+
+    /**
+     * MÉTODOS DEL DIAGRAMA DE SECUENCIA
+     */
+
+    /**
+     * Registra un nuevo pago para una reserva.
+     * Mapea al paso 'RegistrarPago' del diagrama.
+     */
+    public static function registrarPago($data)
+    {
+        return self::create([
+            'id_reserva' => $data['id_reserva'],
+            'monto'      => $data['monto'],
+            'medio_pago' => $data['medio_pago'],
+            'fecha_pago' => now(),
+        ]);
+    }
 }

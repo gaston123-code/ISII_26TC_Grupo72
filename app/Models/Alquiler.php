@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Alquiler extends Model
 {
-    protected $table      = 'alquileres';
+    protected $table = 'alquileres';
     protected $primaryKey = 'id_reserva';
 
     protected $fillable = [
@@ -26,9 +26,9 @@ class Alquiler extends Model
     ];
 
     protected $casts = [
-        'fecha_retiro'     => 'date',
+        'fecha_retiro' => 'date',
         'fecha_devolucion' => 'date',
-        'precioTotal'      => 'decimal:2',
+        'precioTotal' => 'decimal:2',
     ];
 
     public function cliente(): BelongsTo
@@ -57,5 +57,115 @@ class Alquiler extends Model
     public function getCantidadDiasAttribute(): int
     {
         return $this->fecha_retiro->diffInDays($this->fecha_devolucion) ?: 1;
+    }
+
+    /**
+     * MÉTODOS DEL DIAGRAMA DE SECUENCIA
+     */
+
+    /**
+     * Verifica la validez de los datos de la reserva.
+     * Mapea al paso 'VerificarDatos' del diagrama.
+     */
+    public static function verificarDatos($data)
+    {
+        // En Laravel, la validación principal ocurre en el controlador.
+        // Este método puede usarse para validaciones adicionales de lógica de negocio.
+        return true;
+    }
+
+    /**
+     * Procesa la creación de la reserva y actualiza el estado del auto.
+     * Mapea al paso 'reservar' del diagrama.
+     */
+    public static function reservar($data)
+    {
+        $alquiler = self::create([
+            'id_auto' => $data['id_auto'],
+            'id_cliente' => $data['id_cliente'],
+            'fecha_retiro' => $data['fecha_retiro'],
+            'fecha_devolucion' => $data['fecha_devolucion'],
+            'hora_retiro' => $data['hora_retiro'],
+            'hora_devolucion' => $data['hora_devolucion'],
+            'precioTotal' => $data['precioTotal'],
+            'id_estadoAlquiler' => 1, // Pendiente
+        ]);
+
+        // Bloquear el auto (Estado: Ocupado/Reservado ID 2)
+        if ($alquiler->auto) {
+            $alquiler->auto->update(['id_estadoAuto' => 2]);
+        }
+
+        return $alquiler;
+    }
+
+    /**
+     * MÉTODOS DEL SEGUNDO DIAGRAMA DE SECUENCIA
+     */
+
+    /**
+     * Obtiene las reservas de un cliente.
+     * Mapea al paso 'verificarReservas' del diagrama.
+     */
+    public static function verificarReservas($id_cliente)
+    {
+        return self::with(['auto.modelo.marca', 'estadoAlquiler'])
+            ->where('id_cliente', $id_cliente)
+            ->where('id_estadoAlquiler', '!=', 5) // Excluir canceladas
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Obtiene el detalle de una reserva.
+     * Mapea al paso 'verDetalleReserva' del diagrama.
+     */
+    public static function verDetalleReserva($id_reserva)
+    {
+        return self::with(['auto.modelo.marca', 'estadoAlquiler'])->findOrFail($id_reserva);
+    }
+
+    /**
+     * Procesa la cancelación de la reserva y libera el auto.
+     * Mapea al paso 'cancelarReserva' del diagrama.
+     */
+    public function cancelarReserva()
+    {
+        // 1. Cambiar estado a 'Cancelado' (ID 5)
+        $this->update(['id_estadoAlquiler' => 5]);
+
+        // 2. Liberar el auto (Estado: Disponible ID 1)
+        if ($this->auto) {
+            $this->auto->update(['id_estadoAuto' => 1]);
+        }
+
+        return true;
+    }
+    /**
+     * MÉTODOS DEL TERCER DIAGRAMA DE SECUENCIA
+     */
+
+    /**
+     * Verifica qué autos están ocupados en un rango de fechas/horas.
+     * Mapea al paso 'verificarConsulta' del diagrama.
+     */
+    public static function verificarConsulta($f_retiro, $f_devolucion, $h_retiro, $h_devolucion)
+    {
+        // Buscamos alquileres que se solapen con el rango solicitado
+        // Un alquiler se solapa si (inicio1 < fin2) Y (fin1 > inicio2)
+        // Nota: id_estadoAlquiler != 5 (excluimos cancelados)
+
+        return self::where('id_estadoAlquiler', '!=', 5)
+            ->where(function ($query) use ($f_retiro, $f_devolucion) {
+                $query->whereBetween('fecha_retiro', [$f_retiro, $f_devolucion])
+                    ->orWhereBetween('fecha_devolucion', [$f_retiro, $f_devolucion])
+                    ->orWhere(function ($q) use ($f_retiro, $f_devolucion) {
+                        $q->where('fecha_retiro', '<=', $f_retiro)
+                            ->where('fecha_devolucion', '>=', $f_devolucion);
+                    });
+            })
+            ->pluck('id_auto')
+            ->unique()
+            ->toArray();
     }
 }
