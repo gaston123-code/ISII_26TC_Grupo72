@@ -26,7 +26,14 @@
     </script>
 
     <!-- Formulario de Consulta de Disponibilidad (Oculto por defecto) -->
-    <div id="availability-form-container" class="reservation-card mb-5" style="padding: 2rem; display: {{ (isset($busqueda) || request('show_search') || $errors->any()) ? 'block' : 'none' }};">
+    @php
+        $showSearchForm = isset($busqueda) || request('show_search') || $errors->any();
+    @endphp
+    <style>
+        .search-form-visible { display: block; }
+        .search-form-hidden { display: none; }
+    </style>
+    <div id="availability-form-container" class="reservation-card mb-5 {{ $showSearchForm ? 'search-form-visible' : 'search-form-hidden' }}" style="padding: 2rem;">
         <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;"><i class="fa-solid fa-magnifying-glass"></i> {{ __('Consultar Disponibilidad') }}</h3>
         
         @if ($errors->any())

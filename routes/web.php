@@ -28,45 +28,37 @@ Route::get('/', function () {
 Route::match(['get', 'post'], '/consultar-disponibilidad', [\App\Http\Controllers\AlquilerController::class, 'consultarDisponibilidad'])->name('consultar.disponibilidad');
 
 // ═══════════════════════════════════════════════════════════
-//  AUTENTICACIÓN — CLIENTE
+//  AUTENTICACIÓN Y REGISTRO
 // ═══════════════════════════════════════════════════════════
 
-Route::prefix('cliente')->name('cliente.')->group(function () {
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Login
-    Route::get('/login',  [AuthController::class, 'showClienteLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'clienteLogin'])->name('login.submit');
+Route::get('/registro', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/registro', [AuthController::class, 'register'])->name('register.submit');
 
-    // Registro
-    Route::get('/registro',  [AuthController::class, 'showClienteRegister'])->name('register');
-    Route::post('/registro', [AuthController::class, 'clienteRegister'])->name('register.submit');
+// ═══════════════════════════════════════════════════════════
+//  RUTAS DEL CLIENTE (Requiere login como cliente)
+// ═══════════════════════════════════════════════════════════
 
-    // Logout (protegida)
-    Route::match(['get', 'post'], '/logout', [AuthController::class, 'clienteLogout'])
-         ->middleware('auth.cliente')
-         ->name('logout');
+Route::prefix('cliente')->name('cliente.')->middleware('auth.cliente')->group(function () {
+    Route::get('/perfil', fn() => view('cliente.perfil'))->name('perfil');
 
-    // Rutas protegidas del cliente (perfil, mis alquileres, etc.)
-    // Para ser completadas por Gastón según el flujo de renta
-    Route::middleware('auth.cliente')->group(function () {
-        Route::get('/perfil', fn() => view('cliente.perfil'))->name('perfil');
+    Route::get('/reservar/{id_auto}', function ($id_auto) {
+        $auto = \App\Models\Auto::findOrFail($id_auto);
+        return view('reservar', compact('auto'));
+    })->name('reservar');
 
-        Route::get('/reservar/{id_auto}', function ($id_auto) {
-            $auto = \App\Models\Auto::findOrFail($id_auto);
-            return view('reservar', compact('auto'));
-        })->name('reservar');
+    // Procesar Alquiler y Pagos
+    Route::get('/mis-reservas', [\App\Http\Controllers\AlquilerController::class, 'index'])->name('reserva.index');
+    Route::post('/alquiler', [\App\Http\Controllers\AlquilerController::class, 'store'])->name('reserva.store');
+    Route::get('/reserva-exitosa/{id}', [\App\Http\Controllers\AlquilerController::class, 'success'])->name('reserva.exitosa');
+    Route::delete('/reserva/{id}/cancelar', [\App\Http\Controllers\AlquilerController::class, 'cancel'])->name('reserva.cancel');
 
-        // Procesar Alquiler y Pagos
-        Route::get('/mis-reservas', [\App\Http\Controllers\AlquilerController::class, 'index'])->name('reserva.index');
-        Route::post('/alquiler', [\App\Http\Controllers\AlquilerController::class, 'store'])->name('reserva.store');
-        Route::get('/reserva-exitosa/{id}', [\App\Http\Controllers\AlquilerController::class, 'success'])->name('reserva.exitosa');
-        Route::delete('/reserva/{id}/cancelar', [\App\Http\Controllers\AlquilerController::class, 'cancel'])->name('reserva.cancel');
-
-        // Pasarela de Pago
-        Route::get('/pago/pasarela/{id}', [\App\Http\Controllers\AlquilerController::class, 'showPasarela'])->name('pago.pasarela');
-        Route::post('/pago/procesar', [\App\Http\Controllers\AlquilerController::class, 'processPasarela'])->name('pago.procesar');
-    });
-
+    // Pasarela de Pago
+    Route::get('/pago/pasarela/{id}', [\App\Http\Controllers\AlquilerController::class, 'showPasarela'])->name('pago.pasarela');
+    Route::post('/pago/procesar', [\App\Http\Controllers\AlquilerController::class, 'processPasarela'])->name('pago.procesar');
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -74,15 +66,6 @@ Route::prefix('cliente')->name('cliente.')->group(function () {
 // ═══════════════════════════════════════════════════════════
 
 Route::prefix('admin')->name('admin.')->group(function () {
-
-    // Login del admin (público)
-    Route::get('/login',  [AuthController::class, 'showAdminLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'adminLogin'])->name('login.submit');
-
-    // Logout
-    Route::post('/logout', [AuthController::class, 'adminLogout'])
-         ->middleware('auth.admin')
-         ->name('logout');
 
     // ── Panel protegido por AdminMiddleware ──────────────────
     Route::middleware('auth.admin')->group(function () {

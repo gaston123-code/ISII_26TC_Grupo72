@@ -21,34 +21,47 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     // ═══════════════════════════════════════════════
-    //  CLIENTE — Login / Logout / Registro
+    //  LOGIN UNIFICADO
     // ═══════════════════════════════════════════════
 
-    /** Muestra el formulario de login para clientes. */
-    public function showClienteLogin(): View
+    /** Muestra el formulario de login único. */
+    public function showLogin(): View|RedirectResponse
     {
-        return view('auth.cliente-login');
+        // Si ya está autenticado, redirigir
+        if (Auth::guard('admin')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if (Auth::guard('cliente')->check()) {
+            return redirect()->route('catalogo');
+        }
+
+        return view('auth.login');
     }
 
-    /** Procesa el login del cliente. */
-    public function clienteLogin(Request $request): RedirectResponse
+    /** Procesa el login para todos los usuarios. */
+    public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'email'      => ['required', 'email'],
-            'contrasena' => ['required', 'string', 'min:6'],
+            'contrasena' => ['required', 'string'],
         ]);
 
-        // Intentar autenticar con el guard 'cliente'
+        // Intentar autenticar como administrador
+        if (Auth::guard('admin')->attempt([
+            'email'    => $credentials['email'],
+            'password' => $credentials['contrasena'],
+        ], $request->boolean('remember'))) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('admin.dashboard'))->with('success', 'Bienvenido al panel de administración.');
+        }
+
+        // Intentar autenticar como cliente
         if (Auth::guard('cliente')->attempt([
             'email'      => $credentials['email'],
-            'password'   => $credentials['contrasena'],   // Laravel mapea 'password' al campo auth
+            'password'   => $credentials['contrasena'],
         ], $request->boolean('remember'))) {
-
             $request->session()->regenerate();
-
-            return redirect()
-                ->intended(route('catalogo'))
-                ->with('success', '¡Bienvenido, ' . Auth::guard('cliente')->user()->nombre . '!');
+            return redirect()->intended(route('catalogo'))->with('success', '¡Bienvenido de nuevo!');
         }
 
         throw ValidationException::withMessages([
@@ -56,24 +69,33 @@ class AuthController extends Controller
         ]);
     }
 
-    /** Cierra la sesión del cliente. */
-    public function clienteLogout(Request $request): RedirectResponse
+    /** Cierra la sesión activa (admin o cliente). */
+    public function logout(Request $request): RedirectResponse
     {
-        Auth::guard('cliente')->logout();
+        if (Auth::guard('admin')->check()) {
+            Auth::guard('admin')->logout();
+        } elseif (Auth::guard('cliente')->check()) {
+            Auth::guard('cliente')->logout();
+        }
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('catalogo')->with('success', 'Sesión cerrada correctamente.');
+        return redirect()->route('login')->with('success', 'Sesión cerrada correctamente.');
     }
 
+    // ═══════════════════════════════════════════════
+    //  REGISTRO DE CLIENTES
+    // ═══════════════════════════════════════════════
+
     /** Muestra el formulario de registro de cliente. */
-    public function showClienteRegister(): View
+    public function showRegister(): View
     {
-        return view('auth.cliente-register');
+        return view('auth.register');
     }
 
     /** Procesa el registro de un nuevo cliente. */
-    public function clienteRegister(Request $request): RedirectResponse
+    public function register(Request $request): RedirectResponse
     {
         $datos = $request->validate([
             'nombre'           => ['required', 'string', 'max:100'],
@@ -96,55 +118,5 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         return redirect()->route('catalogo')->with('success', '¡Cuenta creada! Bienvenido a AutoRent.');
-    }
-
-    // ═══════════════════════════════════════════════
-    //  ADMINISTRADOR — Login / Logout
-    // ═══════════════════════════════════════════════
-
-    /** Muestra el formulario de login para administradores. */
-    public function showAdminLogin(): View
-    {
-        // Si ya está autenticado como admin, redirigir al panel
-        if (Auth::guard('admin')->check()) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        return view('auth.admin-login');
-    }
-
-    /** Procesa el login del administrador. */
-    public function adminLogin(Request $request): RedirectResponse
-    {
-        $credentials = $request->validate([
-            'email'      => ['required', 'email'],
-            'contrasena' => ['required', 'string'],
-        ]);
-
-        if (Auth::guard('admin')->attempt([
-            'email'    => $credentials['email'],
-            'password' => $credentials['contrasena'],
-        ], $request->boolean('remember'))) {
-
-            $request->session()->regenerate();
-
-            return redirect()
-                ->intended(route('admin.dashboard'))
-                ->with('success', 'Bienvenido al panel de administración.');
-        }
-
-        throw ValidationException::withMessages([
-            'email' => 'Credenciales de administrador incorrectas.',
-        ]);
-    }
-
-    /** Cierra la sesión del administrador. */
-    public function adminLogout(Request $request): RedirectResponse
-    {
-        Auth::guard('admin')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect()->route('admin.login');
     }
 }

@@ -68,14 +68,26 @@
                     <div class="header-right"></div>
 
                     <div class="user-menu">
-                        @if(Auth::check())
+                        @if(Auth::guard('cliente')->check())
                             <div class="user-info">
-                                <span class="user-name">{{ Auth::user()->nombre ?? Auth::user()->name }}</span>
+                                <span class="user-name">{{ Auth::guard('cliente')->user()->nombre }}</span>
                                 <div class="avatar">
-                                    {{ substr(Auth::user()->nombre ?? Auth::user()->name ?? 'U', 0, 1) }}
+                                    {{ substr(Auth::guard('cliente')->user()->nombre, 0, 1) }}
                                 </div>
                             </div>
-                            <form method="POST" action="{{ route('cliente.logout') }}" class="logout-form">
+                            <form method="POST" action="{{ route('logout') }}" class="logout-form">
+                                @csrf
+                                <button type="submit" class="btn-link" title="Cerrar Sesión">
+                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                            </form>
+                        @elseif(Auth::guard('admin')->check())
+                            <div class="user-info">
+                                <span class="user-name">Administrador</span>
+                                <div class="avatar">A</div>
+                            </div>
+                            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary btn-sm" style="margin-right: 10px;">Ir al Panel</a>
+                            <form method="POST" action="{{ route('logout') }}" class="logout-form">
                                 @csrf
                                 <button type="submit" class="btn-link" title="Cerrar Sesión">
                                     <i class="fa-solid fa-right-from-bracket"></i>
@@ -83,8 +95,8 @@
                             </form>
                         @else
                             <div class="auth-buttons">
-                                <a href="{{ route('cliente.login') }}" class="btn btn-primary btn-sm">Iniciar Sesión</a>
-                                <a href="{{ route('cliente.register') }}" class="btn btn-outline btn-sm">Registro</a>
+                                <a href="{{ route('login') }}" class="btn btn-primary btn-sm">Iniciar Sesión</a>
+                                <a href="{{ route('register') }}" class="btn btn-outline btn-sm">Registro</a>
                             </div>
                         @endif
                     </div>

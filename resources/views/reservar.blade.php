@@ -30,25 +30,47 @@
             <!-- ID Oculto del Auto -->
             <input type="hidden" name="id_auto" value="{{ $auto->id_auto }}">
 
+            @if ($errors->any())
+                <div class="alert-error" style="background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px;">
+                    <ul style="margin-left: 15px;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="date-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                 <!-- Fecha y Hora de Inicio -->
                 <div class="form-group">
                     <label for="fecha_retiro" class="form-label">{{ __('Fecha de entrega') }}</label>
-                    <input type="date" id="fecha_retiro" name="fecha_retiro" class="form-control @error('fecha_retiro') is-invalid @enderror" value="{{ date('Y-m-d') }}" required>
+                    <input type="date" id="fecha_retiro" name="fecha_retiro" class="form-control @error('fecha_retiro') is-invalid @enderror" value="{{ old('fecha_retiro', date('Y-m-d')) }}" required>
+                    @error('fecha_retiro')
+                        <span class="error-message" style="font-size: 12px; color: #dc2626; margin-top: 4px; display: block;">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="form-group">
                     <label for="hora_retiro" class="form-label">{{ __('Horario de entrega') }}</label>
-                    <input type="time" id="hora_retiro" name="hora_retiro" class="form-control @error('hora_retiro') is-invalid @enderror" value="09:00" required>
+                    <input type="time" id="hora_retiro" name="hora_retiro" class="form-control @error('hora_retiro') is-invalid @enderror" value="{{ old('hora_retiro', '09:00') }}" required>
+                    @error('hora_retiro')
+                        <span class="error-message" style="font-size: 12px; color: #dc2626; margin-top: 4px; display: block;">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <!-- Fecha y Hora de Fin -->
                 <div class="form-group">
                     <label for="fecha_devolucion" class="form-label">{{ __('Fecha de devolución') }}</label>
-                    <input type="date" id="fecha_devolucion" name="fecha_devolucion" class="form-control @error('fecha_devolucion') is-invalid @enderror" value="{{ date('Y-m-d', strtotime('+1 day')) }}" required>
+                    <input type="date" id="fecha_devolucion" name="fecha_devolucion" class="form-control @error('fecha_devolucion') is-invalid @enderror" value="{{ old('fecha_devolucion', date('Y-m-d', strtotime('+1 day'))) }}" required>
+                    @error('fecha_devolucion')
+                        <span class="error-message" style="font-size: 12px; color: #dc2626; margin-top: 4px; display: block;">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="form-group">
                     <label for="hora_devolucion" class="form-label">{{ __('Horario de devolución') }}</label>
-                    <input type="time" id="hora_devolucion" name="hora_devolucion" class="form-control @error('hora_devolucion') is-invalid @enderror" value="18:00" required>
+                    <input type="time" id="hora_devolucion" name="hora_devolucion" class="form-control @error('hora_devolucion') is-invalid @enderror" value="{{ old('hora_devolucion', '18:00') }}" required>
+                    @error('hora_devolucion')
+                        <span class="error-message" style="font-size: 12px; color: #dc2626; margin-top: 4px; display: block;">{{ $message }}</span>
+                    @enderror
                 </div>
             </div>
 

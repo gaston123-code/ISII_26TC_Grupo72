@@ -59,9 +59,10 @@
                                 if($reserva->id_estadoAlquiler == 1) { $statusColor = '#d97706'; $bgColor = '#fef3c7'; } // Pendiente
                                 if($reserva->id_estadoAlquiler == 2) { $statusColor = '#059669'; $bgColor = '#d1fae5'; } // Confirmado
                             }
+                            $statusLabelStyle = 'display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; color: ' . $statusColor . '; background: ' . $bgColor . ';';
                         @endphp
-                        <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; color: {{ $statusColor }}; background: {{ $bgColor }};">
-                             {{ $reserva->estadoAlquiler->estado_alquiler ?? 'Sin estado' }}
+                        <span style="{{ $statusLabelStyle }}">
+                            {{ $reserva->estadoAlquiler->estado_alquiler ?? 'Sin estado' }}
                         </span>
                     </div>
 

@@ -26,7 +26,7 @@ class AlquilerController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'id_auto' => 'required|exists:autos,id_auto',
             'fecha_retiro' => 'required|date|after_or_equal:today',
             'fecha_devolucion' => 'required|date|after:fecha_retiro',
@@ -34,6 +34,18 @@ class AlquilerController extends Controller
             'hora_devolucion' => 'required',
             'medio_pago' => 'required|string',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if ($request->fecha_retiro && $request->fecha_devolucion) {
+                $retiro = Carbon::parse($request->fecha_retiro);
+                $devolucion = Carbon::parse($request->fecha_devolucion);
+                if ($retiro->diffInDays($devolucion) > 30) {
+                    $validator->errors()->add('fecha_devolucion', 'El alquiler no puede superar los 30 días.');
+                }
+            }
+        });
+
+        $validator->validate();
 
         $auto = Auto::findOrFail($request->id_auto);
 
@@ -156,6 +168,16 @@ class AlquilerController extends Controller
             'fecha_retiro.after_or_equal' => 'La fecha de retiro debe ser de hoy en adelante.',
             'fecha_devolucion.after' => 'La fecha de devolución debe ser posterior a la fecha de retiro.',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if ($request->fecha_retiro && $request->fecha_devolucion) {
+                $retiro = Carbon::parse($request->fecha_retiro);
+                $devolucion = Carbon::parse($request->fecha_devolucion);
+                if ($retiro->diffInDays($devolucion) > 30) {
+                    $validator->errors()->add('fecha_devolucion', 'El alquiler no puede superar los 30 días.');
+                }
+            }
+        });
 
         if ($validator->fails()) {
             return redirect()->route('catalogo')

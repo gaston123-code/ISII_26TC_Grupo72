@@ -22,7 +22,7 @@ class ClienteAuthMiddleware
             $request->session()->put('url.intended', $request->url());
 
             return redirect()
-                ->route('cliente.login')
+                ->route('login')
                 ->with('error', 'Debes iniciar sesión para realizar una reserva.');
         }
 

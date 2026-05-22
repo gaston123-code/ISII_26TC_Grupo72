@@ -39,7 +39,7 @@
         <p>Registrate en AutoRent y empezá a alquilar</p>
     </div>
 
-    <form method="POST" action="{{ route('cliente.register.submit') }}">
+    <form method="POST" action="{{ route('register.submit') }}">
         @csrf
 
         <p class="section-title">Datos personales</p>
@@ -98,7 +98,7 @@
     </form>
 
     <div class="footer-links">
-        ¿Ya tenés cuenta? <a href="{{ route('cliente.login') }}">Iniciá sesión</a>
+        ¿Ya tenés cuenta? <a href="{{ route('login') }}">Iniciá sesión</a>
     </div>
 </div>
 </body>

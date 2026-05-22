@@ -27,7 +27,7 @@ class AdminMiddleware
             $request->session()->put('url.intended', $request->url());
 
             return redirect()
-                ->route('admin.login')
+                ->route('login')
                 ->with('error', 'Debes iniciar sesión como administrador para acceder.');
         }
 

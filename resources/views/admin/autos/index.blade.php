@@ -93,9 +93,42 @@
 
         {{-- Paginación --}}
         @if($autos->hasPages())
-            <div style="margin-top:20px; display:flex; justify-content:flex-end;">
-                {{ $autos->links() }}
+            <div class="custom-pagination" style="margin-top:24px; display:flex; justify-content:center;">
+                {{ $autos->links('pagination::bootstrap-4') }}
             </div>
+            <style>
+                .custom-pagination nav { width: 100%; display: flex; justify-content: center; }
+                .custom-pagination ul.pagination {
+                    display: flex;
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                    gap: 6px;
+                }
+                .custom-pagination .page-item .page-link {
+                    padding: 8px 14px;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 6px;
+                    color: #0f172a;
+                    text-decoration: none;
+                    font-size: 14px;
+                    transition: all 0.2s;
+                    display: inline-block;
+                }
+                .custom-pagination .page-item.active .page-link {
+                    background: #2563eb;
+                    color: #fff;
+                    border-color: #2563eb;
+                }
+                .custom-pagination .page-item.disabled .page-link {
+                    color: #94a3b8;
+                    background: #f8fafc;
+                    pointer-events: none;
+                }
+                .custom-pagination .page-item:not(.disabled):not(.active) .page-link:hover {
+                    background: #f1f5f9;
+                }
+            </style>
         @endif
     </div>
 @endif

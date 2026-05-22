@@ -249,7 +249,7 @@
         <p style="font-size:12px; color:#64748b; margin-bottom:8px;">
             {{ auth('admin')->user()->nombre ?? 'Admin' }}
         </p>
-        <form method="POST" action="{{ route('admin.logout') }}">
+        <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit">Cerrar sesión</button>
         </form>
