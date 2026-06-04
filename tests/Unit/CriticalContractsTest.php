@@ -53,7 +53,8 @@ class CriticalContractsTest extends TestCase
     {
         // Verificamos que el scheduler tenga el comando backup:run programado.
         $kernel = $this->app->make(\App\Console\Kernel::class);
-        $schedule = $kernel->schedule($this->app);
+        /** @var \Illuminate\Console\Scheduling\Schedule $schedule */
+        $schedule = $kernel->{'schedule'}($this->app);
         $commands = collect($schedule->events())->pluck('description');
         $this->assertTrue(
             $commands->contains('backup:run'),
@@ -106,6 +107,9 @@ class CriticalContractsTest extends TestCase
             'id_reserva' => $alquiler->id_reserva,
             'identificador_unico' => $alquiler->identificador_unico,
         ]);
+
+        $this->assertNotNull($alquiler->identificador_unico, 'El identificador único no debe ser nulo');
+        $this->assertNotNull($alquiler->firma_digital, 'La firma digital no debe ser nulo');
     }
 
     /** @test */
