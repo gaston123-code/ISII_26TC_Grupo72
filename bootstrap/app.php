@@ -1,12 +1,14 @@
 <?php
 
+use App\Http\Controllers\Admin\AutoController;
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\ClienteAuthMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-return Application::configure(basePath: dirname(__DIR__))
+// Registrar AutoController como Singleton en el contenedor de Laravel
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web:        __DIR__.'/../routes/web.php',
         commands:   __DIR__.'/../routes/console.php',
@@ -28,3 +30,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
+
+// Patrón Singleton: registrar AutoController como instancia única
+$app->singleton(AutoController::class);
+
+return $app;

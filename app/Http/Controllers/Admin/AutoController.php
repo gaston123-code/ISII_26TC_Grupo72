@@ -23,12 +23,14 @@ final class AutoController extends Controller
     /**
      * Singleton instance
      */
-    private static $instance;
+    private static ?self $instance = null;
 
     /**
-     * Private constructor to prevent direct instantiation.
+     * Constructor — usado por el contenedor de Laravel.
+     * Se registra como singleton en AppServiceProvider para
+     * garantizar una única instancia en toda la aplicación.
      */
-    private function __construct() {}
+    public function __construct() {}
 
     /**
      * Retrieve the singleton instance.
@@ -43,9 +45,6 @@ final class AutoController extends Controller
         return self::$instance;
     }
 
-    /**
-     * Singleton instance
-     */
     /**
      * index() — Lista todos los autos con sus relaciones.
      * Ruta: GET /admin/autos
