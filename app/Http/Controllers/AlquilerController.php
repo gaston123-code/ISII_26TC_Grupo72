@@ -51,8 +51,7 @@ class AlquilerController extends Controller
 
         $fechaRetiro = Carbon::parse($request->fecha_retiro);
         $fechaDevolucion = Carbon::parse($request->fecha_devolucion);
-        $dias = $fechaRetiro->diffInDays($fechaDevolucion) ?: 1;
-        $precioTotal = $auto->precio * $dias;
+        $precioTotal = \App\Models\Alquiler::calcularPrecioTotal($auto->precio, $fechaRetiro, $fechaDevolucion);
 
         // --- LLAMADAS AL DIAGRAMA DE SECUENCIA ---
 

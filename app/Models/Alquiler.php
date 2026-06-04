@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\AlquilerStateTrait;
 
 /**
  * Modelo: Alquiler (Reserva)
  */
 class Alquiler extends Model
 {
+    use AlquilerStateTrait;
     protected $table = 'alquileres';
     protected $primaryKey = 'id_reserva';
 
@@ -23,6 +25,8 @@ class Alquiler extends Model
         'id_cliente',
         'id_auto',
         'id_estadoAlquiler',
+        'identificador_unico',
+        'firma_digital',
     ];
 
     protected $casts = [
@@ -75,6 +79,23 @@ class Alquiler extends Model
     }
 
     /**
+     * Calcula el precio total del alquiler.
+     */
+    public static function calcularPrecioTotal($precioDiario, $fechaRetiro, $fechaDevolucion)
+    {
+        $fechaRetiroCarbon = $fechaRetiro instanceof \Carbon\Carbon ? $fechaRetiro : \Carbon\Carbon::parse($fechaRetiro);
+        $fechaDevolucionCarbon = $fechaDevolucion instanceof \Carbon\Carbon ? $fechaDevolucion : \Carbon\Carbon::parse($fechaDevolucion);
+        if ($fechaDevolucionCarbon->lt($fechaRetiroCarbon)) {
+            throw new \InvalidArgumentException('La fecha de devolución no puede ser anterior a la de retiro.');
+        }
+        $dias = $fechaRetiroCarbon->diffInDays($fechaDevolucionCarbon) ?: 1;
+        if ($dias > 30) {
+            throw new \InvalidArgumentException('El alquiler no puede superar los 30 días.');
+        }
+        return round($precioDiario * $dias, 2);
+    }
+
+    /**
      * Procesa la creación de la reserva y actualiza el estado del auto.
      * Mapea al paso 'reservar' del diagrama.
      */
@@ -88,12 +109,14 @@ class Alquiler extends Model
             'hora_retiro' => $data['hora_retiro'],
             'hora_devolucion' => $data['hora_devolucion'],
             'precioTotal' => $data['precioTotal'],
-            'id_estadoAlquiler' => 1, // Pendiente
+            // Use lookup for Pendiente state
+                        'id_estadoAlquiler' => \App\Models\EstadoAlquiler::where('estado_alquiler', 'Pendiente')->value('id_estadoAlquiler'),
         ]);
 
-        // Bloquear el auto (Estado: Ocupado/Reservado ID 2)
+        // Bloquear el auto (Estado: Alquilado)
         if ($alquiler->auto) {
-            $alquiler->auto->update(['id_estadoAuto' => 2]);
+            $alquiladoId = \App\Models\EstadoAuto::where('estado_auto', 'Alquilado')->value('id_estadoAuto');
+            $alquiler->auto->update(['id_estadoAuto' => $alquiladoId]);
         }
 
         return $alquiler;
@@ -131,12 +154,14 @@ class Alquiler extends Model
      */
     public function cancelarReserva()
     {
-        // 1. Cambiar estado a 'Cancelado' (ID 5)
-        $this->update(['id_estadoAlquiler' => 5]);
+        // 1. Cambiar estado a 'Cancelado' usando lookup
+        $canceladoId = \App\Models\EstadoAlquiler::where('estado_alquiler', 'Cancelado')->value('id_estadoAlquiler');
+        $this->update(['id_estadoAlquiler' => $canceladoId]);
 
-        // 2. Liberar el auto (Estado: Disponible ID 1)
+        // 2. Liberar el auto (Estado: Disponible) usando lookup
         if ($this->auto) {
-            $this->auto->update(['id_estadoAuto' => 1]);
+                        $disponibleId = \App\Models\EstadoAuto::where('estado_auto', 'Disponible')->value('id_estadoAuto');
+            $this->auto->update(['id_estadoAuto' => $disponibleId]);
         }
 
         return true;

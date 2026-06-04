@@ -23,12 +23,14 @@ return new class extends Migration
             $table->time('hora_retiro')->nullable();
             $table->time('hora_devolucion')->nullable();
 
+            $table->string('identificador_unico')->unique()->nullable();
+            $table->string('firma_digital')->nullable();
             $table->decimal('precioTotal', 10, 2);
 
             // Claves foráneas
             $table->unsignedBigInteger('id_cliente');
             $table->unsignedBigInteger('id_auto');
-            $table->unsignedBigInteger('id_estadoAlquiler');
+            $table->unsignedBigInteger('id_estadoAlquiler')->nullable()->default(1);
 
             $table->timestamps();
 

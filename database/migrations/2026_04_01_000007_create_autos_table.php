@@ -24,7 +24,7 @@ return new class extends Migration
 
             // Claves foráneas
             $table->unsignedBigInteger('id_modelo');
-            $table->unsignedBigInteger('id_estadoAuto');
+            $table->unsignedBigInteger('id_estadoAuto')->nullable();
 
             $table->timestamps();
 

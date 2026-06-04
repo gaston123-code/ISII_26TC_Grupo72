@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\AutoStateTrait;
 
 /**
  * Modelo: Auto
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Auto extends Model
 {
+    use AutoStateTrait;
     protected $table      = 'autos';
     protected $primaryKey = 'id_auto';
 

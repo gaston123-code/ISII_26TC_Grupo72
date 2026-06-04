@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Models\StateInterface;
 
 /**
  * AutoController (RF3 — Registro y Gestión de Autos)
@@ -17,8 +18,34 @@ use Illuminate\View\View;
  * Permite al Administrador gestionar la flota de autos (CRUD).
  * Todas las rutas de este controller están protegidas por AdminMiddleware.
  */
-class AutoController extends Controller
+final class AutoController extends Controller
 {
+    /**
+     * Singleton instance
+     */
+    private static $instance;
+
+    /**
+     * Private constructor to prevent direct instantiation.
+     */
+    private function __construct() {}
+
+    /**
+     * Retrieve the singleton instance.
+     *
+     * @return self
+     */
+    public static function getInstance(): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    /**
+     * Singleton instance
+     */
     /**
      * index() — Lista todos los autos con sus relaciones.
      * Ruta: GET /admin/autos
