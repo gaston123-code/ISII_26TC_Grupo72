@@ -35,6 +35,18 @@ class Alquiler extends Model
         'precioTotal' => 'decimal:2',
     ];
 
+    protected static function booted()
+    {
+        static::creating(function ($alquiler) {
+            if (empty($alquiler->identificador_unico)) {
+                $alquiler->identificador_unico = uniqid('RES-');
+            }
+            if (empty($alquiler->firma_digital)) {
+                $alquiler->firma_digital = hash('sha256', $alquiler->identificador_unico . now());
+            }
+        });
+    }
+
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
