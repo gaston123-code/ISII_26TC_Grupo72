@@ -23,8 +23,8 @@ return new class extends Migration
             $table->time('hora_retiro')->nullable();
             $table->time('hora_devolucion')->nullable();
 
-            $table->string('identificador_unico')->unique()->nullable();
-            $table->string('firma_digital')->nullable();
+            $table->string('identificador_unico', 100)->unique();
+$table->string('firma_digital', 255);
             $table->decimal('precioTotal', 10, 2);
 
             // Claves foráneas
